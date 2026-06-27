@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dolap">
+<meta name="theme-color" content="#f5c842">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#141414; --card:#1e1e1e; --border:#2e2e2e;
+  --Y:#f5c842; --B:#42c8f5; --G:#6bf542; --P:#f542b4; --R:#f54242;
+  --text:#e0e0e0; --mu:#666;
+}
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:16px; }
+h1 { font-size:1.15rem; font-weight:800; color:var(--Y); text-transform:uppercase; letter-spacing:.06em; }
+.sub { font-size:.68rem; color:var(--mu); text-transform:uppercase; letter-spacing:.08em; margin-bottom:14px; margin-top:2px; }
+
+/* tabs */
+.tabs { display:flex; gap:4px; margin-bottom:14px; flex-wrap:wrap; }
+.tab { padding:7px 11px; border:1px solid var(--border); border-radius:6px; font-size:.72rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; cursor:pointer; color:var(--mu); background:var(--card); transition:all .15s; white-space:nowrap; }
+.tab.active { background:var(--Y); color:#111; border-color:var(--Y); }
+.pane { display:none; } .pane.active { display:block; }
+
+/* card */
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:10px; }
+.ct { font-size:.64rem; font-weight:800; color:var(--Y); text-transform:uppercase; letter-spacing:.12em; margin-bottom:12px; }
+
+/* form */
+.row { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.f { flex:1; min-width:100px; display:flex; flex-direction:column; gap:4px; }
+label { font-size:.67rem; color:var(--mu); }
+input,select { background:var(--bg); border:1px solid #3a3a3a; border-radius:6px; color:var(--text); font-size:.88rem; padding:8px 10px; width:100%; outline:none; transition:border-color .15s; }
+input:focus,select:focus { border-color:var(--Y); }
+input[type=number]::-webkit-inner-spin-button { opacity:.3; }
+.btn { background:var(--Y); color:#111; border:none; border-radius:8px; padding:12px; font-size:.88rem; font-weight:800; width:100%; cursor:pointer; text-transform:uppercase; margin-top:6px; }
+.btn:hover { background:#ffd84a; }
+.btn-sm { background:#252525; color:var(--Y); border:1px solid #3a3a3a; border-radius:6px; padding:5px 10px; font-size:.7rem; font-weight:700; cursor:pointer; }
+.btn-del { color:var(--R); border-color:#3a1a1a; }
+
+/* result */
+.rg { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.rg3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; }
+.rb { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:10px; text-align:center; }
+.rb.y{border-color:var(--Y);background:#1e1a00} .rb.b{border-color:var(--B);background:#001a1e}
+.rb.g{border-color:var(--G);background:#0d1e00} .rb.p{border-color:var(--P);background:#1e001a}
+.rv { font-size:1.1rem; font-weight:800; line-height:1; margin-bottom:3px; color:#fff; }
+.rb.y .rv{color:var(--Y)} .rb.b .rv{color:var(--B)} .rb.g .rv{color:var(--G)} .rb.p .rv{color:var(--P)}
+.rl { font-size:.58rem; color:var(--mu); text-transform:uppercase; letter-spacing:.06em; }
+
+/* table */
+.tbl { width:100%; border-collapse:collapse; font-size:.8rem; }
+.tbl th { text-align:left; padding:5px 8px; color:var(--mu); font-size:.62rem; text-transform:uppercase; border-bottom:1px solid var(--border); }
+.tbl td { padding:7px 8px; border-bottom:1px solid #1a1a1a; vertical-align:middle; }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:hover td { background:#1a1a1a; }
+.yv{color:var(--Y);font-weight:700} .bv{color:var(--B);font-weight:700}
+.gv{color:var(--G);font-weight:700} .pv{color:var(--P);font-weight:700}
+.mv{color:var(--mu);font-size:.75rem}
+
+/* tags */
+.tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.63rem;font-weight:700}
+.ty{background:#2e2200;color:var(--Y)} .tb{background:#00202e;color:var(--B)}
+.tg{background:#0d2200;color:var(--G)} .tp{background:#2e0020;color:var(--P)}
+.tm{background:#202020;color:#888}     .tr{background:#2e0a0a;color:var(--R)}
+
+/* bolum kart */
+.bk { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; }
+.bk-h { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.bk-t { font-size:.82rem; font-weight:700; }
+
+/* boxes */
+.info{background:#001a2e;border:1px solid #003a5a;border-radius:8px;padding:9px 12px;font-size:.74rem;color:#42b4f5;margin-bottom:8px}
+.warn{background:#2a1500;border:1px solid #5a3000;border-radius:8px;padding:9px 12px;font-size:.74rem;color:#f5a042;margin-bottom:8px}
+.ok  {background:#001a00;border:1px solid #005a00;border-radius:8px;padding:9px 12px;font-size:.74rem;color:var(--G);margin-bottom:8px}
+hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+
+/* mentese aciklama renkleri */
+.m-tam{color:var(--G)} .m-bind{color:var(--Y)} .m-ic{color:var(--B)}
+
+/* canvas */
+.cv-wrap{background:#0e0e0e;border-radius:8px;padding:10px;overflow-x:auto;margin-bottom:6px}
+canvas{display:block}
+.hint{font-size:.6rem;color:#333;text-align:center;margin-top:3px}
+
+/* kapak manuel satır */
+.manuel-row { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid #3a3a00; border-radius:6px; padding:8px 10px; margin-bottom:6px; }
+.manuel-row label { font-size:.72rem; color:var(--Y); min-width:80px; }
+</style>
+</head>
+<body>
+
+<h1>🪵 Dolap Planlama</h1>
+<p class="sub">Kesim · Kapak · Kulp · Raf · Çekmece · Levha</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="goTab('giris')">⚙️ Giriş</div>
+  <div class="tab" onclick="goTab('kesim')">📏 Kesim</div>
+  <div class="tab" onclick="goTab('kapak')">🚪 Kapak</div>
+  <div class="tab" onclick="goTab('kulp')">🔘 Kulp</div>
+  <div class="tab" onclick="goTab('raflar')">🔩 Raflar</div>
+  <div class="tab" onclick="goTab('cekmece')">🗄️ Çekmece</div>
+  <div class="tab" onclick="goTab('dikme')">📐 Dikme</div>
+  <div class="tab" onclick="goTab('levha')">🗂️ Levha</div>
+</div>
+
+<!-- ══════ GİRİŞ ══════ -->
+<div class="pane active" id="pane-giris">
+  <div class="card">
+    <div class="ct">📐 Dolap Ölçüleri</div>
+    <div class="row">
+      <div class="f"><label>Dıştan Dışa Genişlik (cm)</label><input type="number" id="gen" value="276" step="0.1" oninput="canliGuncelle()"></div>
+      <div class="f"><label>Yükseklik (cm)</label><input type="number" id="yuk" value="200" step="0.1"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Derinlik (cm)</label><input type="number" id="der" value="60" step="0.1"></div>
+      <div class="f"><label>MDF Kalınlığı (cm)</label><input type="number" id="kln" value="1.8" step="0.1" oninput="canliGuncelle()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Bölüm Sayısı</label><input type="number" id="bn" value="4" min="1" max="20" oninput="renderBolumlar()"></div>
+      <div class="f"><label>Testere Kesim Payı (cm)</label><input type="number" id="tpay" value="0.3" step="0.05" min="0"></div>
+    </div>
+    <div class="info" id="ic-bilgi" style="margin-top:4px"></div>
+  </div>
+
+  <div class="card">
+    <div class="ct">🗂️ Bölüm Tipleri</div>
+    <p class="mv" style="margin-bottom:10px">Kapak/Çekmece/Açık — her bölüm bağımsız.</p>
+    <div id="bolum-list"></div>
+
+    <!-- Global menteşe — altta, sade -->
+    <div style="background:#1a1400;border:1px solid #3a2e00;border-radius:8px;padding:10px;margin-top:12px">
+      <div style="font-size:.65rem;color:var(--Y);font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">⚡ Tüm Kapaklara Uygula</div>
+      <select id="global-mentese" onchange="tumKapaklaraUygula()" style="width:100%"></select>
+      <div class="mv" id="global-mentese-aciklama" style="margin-top:6px;font-size:.7rem"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">📦 MDF Levha Boyutları</div>
+    <div id="levha-list"></div>
+    <button class="btn-sm" onclick="levhaEkle()" style="margin-top:6px">+ Levha Ekle</button>
+  </div>
+
+  <button class="btn" onclick="hesapla()">HESAPLA ▶</button>
+</div>
+
+<!-- ══════ KESİM ══════ -->
+<div class="pane" id="pane-kesim">
+  <div id="kesim-ic"><p class="mv" style="padding:12px 0">Önce Giriş → Hesapla.</p></div>
+</div>
+
+<!-- ══════ KAPAK ══════ -->
+<div class="pane" id="pane-kapak">
+
+  <!-- Mod seçimi -->
+  <div class="card">
+    <div class="ct">🚪 Kapak Modu</div>
+    <div class="row">
+      <div class="f"><label>Ölçü Kaynağı</label>
+        <select id="kapak-mod" onchange="kapakModDegis()">
+          <option value="oto">Otomatik (dolap hesabından)</option>
+          <option value="icten">İçten içe ölçü ver (bölüm başına)</option>
+        </select>
+      </div>
+    </div>
+    <div id="kapak-oto-bilgi" class="info" style="display:none"></div>
+  </div>
+
+  <!-- İçten içe mod -->
+  <div id="kapak-manuel-alan" style="display:none">
+    <div class="card">
+      <div class="ct">📐 İçten İçe Ölçüler</div>
+      <p class="mv" style="margin-bottom:8px">Her bölümün içten içe genişlik ve yüksekliğini gir. Kapak boyutu bu ölçüden + menteşe payı hesaplanır.</p>
+      <div id="icten-liste"></div>
+    </div>
+  </div>
+
+  <!-- Bölüm kapak ayarları -->
+  <div id="kapak-bolumler"></div>
+
+  <button class="btn" onclick="hesaplaKapaklar()">KAPAK HESAPLA ▶</button>
+  <div id="kapak-sonuc"></div>
+</div>
+
+<!-- ══════ KULP ══════ -->
+<div class="pane" id="pane-kulp">
+  <div class="card">
+    <div class="ct">🔘 Kulp Ayarları</div>
+
+    <div class="row">
+      <div class="f"><label>Kapak Genişliği (cm) — boş=hesaptan</label>
+        <input type="number" id="kp-gen" placeholder="ör: 47.55" step="0.1" oninput="hesaplaKulp()"></div>
+      <div class="f"><label>Kapak Yüksekliği (cm) — boş=hesaptan</label>
+        <input type="number" id="kp-yuk" placeholder="ör: 196" step="0.1" oninput="hesaplaKulp()"></div>
+    </div>
+
+    <div class="row">
+      <div class="f"><label>Delik Çapı (cm)</label>
+        <input type="number" id="kp-cap" value="3.5" step="0.1" oninput="hesaplaKulp()"></div>
+      <div class="f"><label>Delik Adedi</label>
+        <select id="kp-adet" onchange="kulpAdetDegis()">
+          <option value="1">1 delik (tek kulp)</option>
+          <option value="2">2 delik (gizli kulp)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" id="kp-aralik-row" style="display:none">
+      <div class="f"><label>Delikler Arası (cm, merkez-merkez)</label>
+        <input type="number" id="kp-aralik" value="6.4" step="0.1" oninput="hesaplaKulp()"></div>
+    </div>
+
+    <!-- DİKEY HİZALAMA -->
+    <div style="font-size:.65rem;color:var(--Y);font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin:10px 0 6px">↕ Dikey Hizalama</div>
+    <div class="row">
+      <div class="f"><label>Konum</label>
+        <select id="kp-ykon" onchange="kulpKonumDegis()">
+          <option value="orta">Tam orta</option>
+          <option value="ust">Üstten mesafe</option>
+          <option value="alt">Alttan mesafe</option>
+          <option value="ozel">Özel (cm, üstten)</option>
+        </select>
+      </div>
+      <div class="f" id="kp-ymes-f" style="display:none">
+        <label id="kp-ymes-lbl">Mesafe (cm)</label>
+        <input type="number" id="kp-ymes" value="10" step="0.1" oninput="hesaplaKulp()">
+      </div>
+    </div>
+
+    <!-- YATAY HİZALAMA -->
+    <div style="font-size:.65rem;color:var(--Y);font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin:10px 0 6px">↔ Yatay Hizalama</div>
+    <div class="row">
+      <div class="f"><label>Konum</label>
+        <select id="kp-xkon" onchange="kulpXKonumDegis()">
+          <option value="orta">Tam orta</option>
+          <option value="sol">Soldan mesafe</option>
+          <option value="sag">Sağdan mesafe</option>
+        </select>
+      </div>
+      <div class="f" id="kp-xmes-f" style="display:none">
+        <label id="kp-xmes-lbl">Mesafe (cm)</label>
+        <input type="number" id="kp-xmes" value="5" step="0.1" oninput="hesaplaKulp()">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="f"><label>Kaç Kapak için Hesapla</label>
+        <input type="number" id="kp-kadat" value="1" min="1" oninput="hesaplaKulp()"></div>
+    </div>
+  </div>
+  <div id="kulp-sonuc"></div>
+</div>
+
+<!-- ══════ RAFLAR ══════ -->
+<div class="pane" id="pane-raflar">
+  <div class="card">
+    <div class="ct">🔩 Pim Ayarları</div>
+    <div class="row">
+      <div class="f"><label>Pim Çapı (mm)</label><input type="number" id="pimCap" value="5" step="0.5" min="3"></div>
+      <div class="f"><label>Izgara Aralığı</label>
+        <select id="pimAralik">
+          <option value="0.25">0.25 cm</option>
+          <option value="0.50">0.50 cm</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Panel Kenarından (cm)</label><input type="number" id="pimKenar" value="3.7" step="0.1"></div>
+      <div class="f"><label>Alt Başlangıç (cm)</label><input type="number" id="pimAlt" value="15" step="0.5"></div>
+      <div class="f"><label>Üst Bitiş (cm)</label><input type="number" id="pimUst" value="185" step="0.5"></div>
+    </div>
+  </div>
+  <div id="raf-bolumlar"></div>
+  <button class="btn" onclick="hesaplaRaflar()">RAF HESAPLA ▶</button>
+  <div id="raf-sonuc"></div>
+</div>
+
+<!-- ══════ LEVHA ══════ -->
+<div class="pane" id="pane-levha">
+  <div id="levha-ic"><p class="mv" style="padding:12px 0">Önce Giriş → Hesapla.</p></div>
+</div>
+
+<!-- ══════ DİKME ══════ -->
+<div class="pane" id="pane-dikme">
+  <div class="card">
+    <div class="ct">📐 Bağımsız Dikme Hesabı</div>
+    <p class="mv" style="margin-bottom:10px">Yanlar zaten takılı. Sadece dikme/bölme hesapla.</p>
+
+    <div class="row">
+      <div class="f">
+        <label>Ölçü Tipi</label>
+        <select id="dk-tip" onchange="dkTipDegis()">
+          <option value="ic">İç net genişlik (yanlar çıktıktan sonra kalan)</option>
+          <option value="dis">Dıştan dışa genişlik (yanlar dahil)</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="f"><label id="dk-gen-lbl">İç Net Genişlik (cm)</label>
+        <input type="number" id="dk-gen" value="271.8" step="0.1" oninput="hesaplaDikme()"></div>
+      <div class="f"><label>MDF Kalınlığı (cm)</label>
+        <input type="number" id="dk-mdf" value="1.8" step="0.1" oninput="hesaplaDikme()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Bölme Sayısı</label>
+        <input type="number" id="dk-bolum" value="4" min="1" max="20" oninput="hesaplaDikme()"></div>
+      <div class="f"><label>Yükseklik (cm) — dikme boyu için</label>
+        <input type="number" id="dk-yuk" value="30" step="0.1" oninput="hesaplaDikme()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Derinlik (cm) — dikme boyu için</label>
+        <input type="number" id="dk-der" value="42" step="0.1" oninput="hesaplaDikme()"></div>
+    </div>
+  </div>
+  <div id="dikme-sonuc"></div>
+</div>
+
+<!-- ══════ ÇEKMECE ══════ -->
+<div class="pane" id="pane-cekmece">
+  <div class="card">
+    <div class="ct">🗄️ Çekmece Hesabı</div>
+    <p class="mv" style="margin-bottom:10px">Bağımsız çalışır — dolap hesabına gerek yok.</p>
+
+    <div class="row">
+      <div class="f"><label>Dolap İç Genişlik (cm)</label>
+        <input type="number" id="ck-icgen" value="56.4" step="0.1" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>Dolap İç Yükseklik (cm)</label>
+        <input type="number" id="ck-icyuk" value="56.4" step="0.1" oninput="hesaplaCekmece()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Dolap Derinlik — dıştan dışa (cm)</label>
+        <input type="number" id="ck-der" value="42" step="0.1" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>MDF Kalınlığı (cm)</label>
+        <input type="number" id="ck-mdf" value="1.8" step="0.1" oninput="hesaplaCekmece()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">📦 Çekmece Ayarları</div>
+    <div class="row">
+      <div class="f"><label>Çekmece Sayısı</label>
+        <input type="number" id="ck-sayi" value="3" min="1" max="20" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>Ön Yüz Yüksekliği (cm)</label>
+        <input type="number" id="ck-onyuk" value="15" step="0.1" oninput="hesaplaCekmece()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Çekmeceler Arası Pay (cm)</label>
+        <input type="number" id="ck-pay" value="0.3" step="0.05" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>1. Çekmece Alttan Başlangıç (cm)</label>
+        <input type="number" id="ck-alt" value="0" step="0.1" oninput="hesaplaCekmece()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Ön Yüz Yan Pay (cm)</label>
+        <input type="number" id="ck-onpay" value="0.3" step="0.05" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>Ön Yüz Üst/Alt Pay (cm)</label>
+        <input type="number" id="ck-ondikpay" value="0.15" step="0.05" oninput="hesaplaCekmece()"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ct">🔧 Ray Ayarları</div>
+    <div class="row">
+      <div class="f"><label>Ray Tipi</label>
+        <select id="ck-raytip" onchange="hesaplaCekmece()">
+          <option value="teleskopik">Teleskopik (tam açılım)</option>
+          <option value="yan">Yan Ray</option>
+          <option value="alttan">Alttan Ray</option>
+        </select></div>
+      <div class="f"><label>Ray Boyu (cm)</label>
+        <input type="number" id="ck-rayboy" value="40" step="1" oninput="hesaplaCekmece()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Ray Payı — her yana (cm)</label>
+        <input type="number" id="ck-raypay" value="1.3" step="0.1" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>Arka Pay (cm)</label>
+        <input type="number" id="ck-arkapay" value="1.0" step="0.1" oninput="hesaplaCekmece()"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Taban MDF (cm)</label>
+        <input type="number" id="ck-tabank" value="0.8" step="0.1" oninput="hesaplaCekmece()"></div>
+      <div class="f"><label>Yan MDF (cm)</label>
+        <input type="number" id="ck-yank" value="1.8" step="0.1" oninput="hesaplaCekmece()"></div>
+    </div>
+  </div>
+
+  <div id="cekmece-sonuc"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════
+   MENTEŞE VERİTABANI
+   yanPay: kapak ile panel arası boşluk (cm) — her iki yanda toplamda
+   dikPay: üst+alt boşluk toplamı (cm)
+   bindirme: kasa dışına taşma (tek yön, cm) — 0 ise tam/içten
+   kapakTip: 'tam' | 'bindirme' | 'icten'
+   
+   ÖNEMLI MANTIK:
+   - yanPay = kapağın HER İKİ YANINDA toplam boşluk
+     yani sol boşluk = yanPay/2, sağ boşluk = yanPay/2
+   - Bindirmede: kG = bolumIc + bindirme*2 - yanPay
+     (her iki yana binder, ama yanPay kadar boşluk bırak)
+   - Yarım deve vs düz menteşe SADECE bağlanma şeklini etkiler,
+     formül aynı. Fark: bindirme miktarı ve kapakTip.
+═══════════════════════════════ */
+const MENTESE = {
+  yarim_deve: {
+    ad: 'Yarım Deve', emoji: '🔩',
+    yanPay: 0.2, dikPay: 0.2, bindirme: 0, kapakTip: 'tam',
+    aciklama: 'Kapak kasa iç yüzüyle aynı hizadadır. Kasa kenarı görünür. İç bölmeler ve raflar için idealdir.',
+    kapakAcik: 'Tam (iç yüz hizası)'
+  },
+  duz: {
+    ad: 'Düz Menteşe', emoji: '🔧',
+    yanPay: 0.3, dikPay: 0.3, bindirme: 1.7, kapakTip: 'bindirme',
+    aciklama: 'Kapak kasa üzerine biner (tipik 17mm). Kasa kenarı görünmez. Tek parça veya birleşik dolaplarda kullanılır.',
+    kapakAcik: 'Bindirme'
+  },
+  tam_deve: {
+    ad: 'Tam Deve', emoji: '🔩',
+    yanPay: 0.2, dikPay: 0.2, bindirme: 0, kapakTip: 'tam',
+    aciklama: 'Yarım deve gibi tam kapak, ancak menteşe gövdesi daha büyük — daha ağır kapaklara uygun.',
+    kapakAcik: 'Tam (iç yüz hizası)'
+  },
+  robot_180: {
+    ad: 'Robot 180°', emoji: '🤖',
+    yanPay: 0.2, dikPay: 0.2, bindirme: 0, kapakTip: 'tam',
+    aciklama: '180 derece açılır — kapak tamamen yatay olur. Mutfak üst dolap, kolay erişim gereken yerler.',
+    kapakAcik: 'Tam (iç yüz hizası)'
+  },
+  robot_90: {
+    ad: 'Robot 90°', emoji: '🤖',
+    yanPay: 0.2, dikPay: 0.2, bindirme: 0, kapakTip: 'tam',
+    aciklama: '90 derece açılır ve durur, kapak dışarı çıkmaz. Dar koridor veya dar geçitler için.',
+    kapakAcik: 'Tam (iç yüz hizası)'
+  },
+  gizli: {
+    ad: 'Gizli (Clip-on)', emoji: '⚙️',
+    yanPay: 0.2, dikPay: 0.2, bindirme: 0, kapakTip: 'tam',
+    aciklama: 'En yaygın modern menteşe. Ayarlanabilir (x/y/z). Kapalıyken görünmez. Standart tam kapak.',
+    kapakAcik: 'Tam (iç yüz hizası)'
+  },
+  piyano: {
+    ad: 'Piyano (Piano)', emoji: '🎹',
+    yanPay: 0.15, dikPay: 0.15, bindirme: 0, kapakTip: 'tam',
+    aciklama: 'Kapak boyunca uzanan uzun menteşe. Çok ağır veya çok uzun (>200cm) kapaklar için. Eğilmeye karşı dayanıklı.',
+    kapakAcik: 'Tam (iç yüz hizası)'
+  },
+  icten: {
+    ad: 'İçten Kapak', emoji: '📦',
+    yanPay: 0.3, dikPay: 0.3, bindirme: 0, kapakTip: 'icten',
+    aciklama: 'Kapak çerçeve içine girer, kasa tamamen görünür (Shaker/çerçeveli stil). Özel estetik için.',
+    kapakAcik: 'İçten (çerçeve görünür)'
+  },
+};
+
+/* ═══════════ STATE ═══════════ */
+const S = {
+  levhalar: [{ en: 220, boy: 280 }],
+  bolumler: [],
+  sonuc: null,
+  kapakSonucu: null,
+};
+
+/* ═══════════ UTILS ═══════════ */
+const $ = id => document.getElementById(id);
+const fmt = n => isNaN(n)||!isFinite(n) ? '?' : +(Math.round((n+Number.EPSILON)*1000)/1000);
+
+function goTab(t) {
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('active'));
+  document.querySelector(`[onclick="goTab('${t}')"]`).classList.add('active');
+  $(`pane-${t}`).classList.add('active');
+  if (t==='kapak')   renderKapakPane();
+  if (t==='kulp')    hesaplaKulp();
+  if (t==='cekmece') hesaplaCekmece();
+  if (t==='dikme')   hesaplaDikme();
+}
+
+/* ═══════════ LEVHA ═══════════ */
+function renderLevhalar() {
+  const el=$('levha-list'); el.innerHTML='';
+  S.levhalar.forEach((l,i)=>{
+    const d=document.createElement('div');
+    d.className='row'; d.style.alignItems='flex-end';
+    d.innerHTML=`
+      <div class="f"><label>Levha ${i+1} — En (cm)</label>
+        <input type="number" value="${l.en}" step="0.5" onchange="S.levhalar[${i}].en=parseFloat(this.value)"></div>
+      <div class="f"><label>Boy (cm)</label>
+        <input type="number" value="${l.boy}" step="0.5" onchange="S.levhalar[${i}].boy=parseFloat(this.value)"></div>
+      <div class="f" style="flex:0;padding-bottom:1px"><label>&nbsp;</label>
+        <button class="btn-sm btn-del" onclick="levhaSil(${i})">✕</button></div>`;
+    el.appendChild(d);
+  });
+}
+function levhaEkle(){S.levhalar.push({en:220,boy:280});renderLevhalar();}
+function levhaSil(i){if(S.levhalar.length>1){S.levhalar.splice(i,1);renderLevhalar();}}
+
+/* ═══════════ BÖLÜM DEFAULTS ═══════════ */
+function defaultBolum(){
+  return {
+    tip:'acik',
+    menteseTip:'yarim_deve',
+    kanatSayi:1,
+    // kapak boyutu kaynağı
+    kaynakMod:'oto',   // 'oto' | 'manuel'
+    manuelGen:null,    // cm — sadece manuel modda
+    manuelYuk:null,
+    // çekmece
+    cekSayi:1, cekYuk:18, cekYanPay:0.3, cekDikPay:0.2,
+    cekRayPay:1.3, cekArkaPay:1.0, cekTabanK:0.8, cekYanK:1.8,
+  };
+}
+
+/* ═══════════ İÇ GENİŞLİK HESAP ═══════════ */
+function getIcBilgi(){
+  const G=parseFloat($('gen').value)||0;
+  const K=parseFloat($('kln').value)||1.8;
+  const B=S.bolumler.length||parseInt($('bn').value)||1;
+  const icBos = G-(B+1)*K;
+  const bolumIc = icBos/B;
+  return {G,K,B,icBos,bolumIc};
+}
+
+function canliGuncelle(){
+  const {G,K,B,icBos,bolumIc}=getIcBilgi();
+  $('ic-bilgi').innerHTML=
+    `${G}cm − (${B+1} panel × ${K}cm) = <b>${fmt(icBos)}cm</b> iç boşluk → <b>${fmt(bolumIc)}cm</b> / bölüm`;
+}
+
+/* ═══════════ BÖLÜM RENDER ═══════════ */
+function renderBolumlar(){
+  const n=parseInt($('bn').value)||1;
+  while(S.bolumler.length<n) S.bolumler.push(defaultBolum());
+  S.bolumler.length=n;
+  const el=$('bolum-list'); el.innerHTML='';
+  S.bolumler.forEach((b,i)=>{
+    const d=document.createElement('div');
+    d.className='bk'; d.id=`bk-${i}`;
+    d.innerHTML=bolumHTML(i,b);
+    el.appendChild(d);
+  });
+  canliGuncelle();
+}
+
+function bolumHTML(i,b){
+  const m=MENTESE[b.menteseTip]||MENTESE.yarim_deve;
+  const badge = b.tip==='kapak'?`<span class="tag tb">Kapak</span>`:
+                b.tip==='cekmece'?`<span class="tag tp">Çekmece</span>`:
+                `<span class="tag tm">Açık</span>`;
+  let det='';
+  if(b.tip==='kapak'){
+    det=`
+      <div class="row" style="margin-top:8px">
+        <div class="f"><label>Menteşe Tipi</label>
+          <select id="mentese-sel-${i}" onchange="setMentese(${i},this.value)">
+            ${Object.entries(MENTESE).map(([k,v])=>`<option value="${k}" ${b.menteseTip===k?'selected':''}>${v.emoji} ${v.ad}</option>`).join('')}
+          </select></div>
+        <div class="f"><label>Kanat Sayısı</label>
+          <select id="kanat-sel-${i}" onchange="setBolum(${i},'kanatSayi',parseInt(this.value))">
+            <option value="1" ${b.kanatSayi===1?'selected':''}>1 kanat — tek parça</option>
+            <option value="2" ${b.kanatSayi===2?'selected':''}>2 kanat — bölüm ortadan ikiye bölünür</option>
+          </select></div>
+      </div>
+      <div class="info" style="padding:7px 10px;font-size:.7rem;margin:4px 0 8px">
+        <b>${m.emoji} ${m.ad} — ${m.kapakAcik}:</b> ${m.aciklama}
+      </div>`;
+
+    if(b.menteseTip==='duz'){
+      det+=`<div class="row">
+        <div class="f"><label>Bindirme Miktarı (cm, tek yön)</label>
+          <input type="number" id="bnd-inp-${i}" value="${b.bindirme||m.bindirme}" step="0.1"
+            onchange="setBolum(${i},'bindirme',parseFloat(this.value))"></div>
+      </div>`;
+    }
+    det+=`<div class="row">
+      <div class="f"><label>Yan Pay — toplam (cm)</label>
+        <input type="number" id="yan-inp-${i}" value="${b.yanPay!=null?b.yanPay:m.yanPay}" step="0.05"
+          onchange="setBolum(${i},'yanPay',parseFloat(this.value))"></div>
+      <div class="f"><label>Üst+Alt Pay — toplam (cm)</label>
+        <input type="number" id="dik-inp-${i}" value="${b.dikPay!=null?b.dikPay:m.dikPay}" step="0.05"
+          onchange="setBolum(${i},'dikPay',parseFloat(this.value))"></div>
+    </div>`;
+  }
+
+  if(b.tip==='cekmece'){
+    det=`
+      <div class="row" style="margin-top:8px">
+        <div class="f"><label>Çekmece Adedi</label>
+          <input type="number" value="${b.cekSayi}" min="1"
+            onchange="setBolum(${i},'cekSayi',parseInt(this.value))"></div>
+        <div class="f"><label>Ön Yüz Yüksekliği (cm)</label>
+          <input type="number" value="${b.cekYuk}" step="0.5"
+            onchange="setBolum(${i},'cekYuk',parseFloat(this.value))"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label>Yan Pay (cm)</label>
+          <input type="number" value="${b.cekYanPay}" step="0.05"
+            onchange="setBolum(${i},'cekYanPay',parseFloat(this.value))"></div>
+        <div class="f"><label>Üst/Alt Pay (cm)</label>
+          <input type="number" value="${b.cekDikPay}" step="0.05"
+            onchange="setBolum(${i},'cekDikPay',parseFloat(this.value))"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label>Ray Payı / yana (cm)</label>
+          <input type="number" value="${b.cekRayPay}" step="0.05"
+            onchange="setBolum(${i},'cekRayPay',parseFloat(this.value))"></div>
+        <div class="f"><label>Arka Pay (cm)</label>
+          <input type="number" value="${b.cekArkaPay}" step="0.05"
+            onchange="setBolum(${i},'cekArkaPay',parseFloat(this.value))"></div>
+      </div>
+      <div class="row">
+        <div class="f"><label>Taban MDF (cm)</label>
+          <input type="number" value="${b.cekTabanK}" step="0.1"
+            onchange="setBolum(${i},'cekTabanK',parseFloat(this.value))"></div>
+        <div class="f"><label>Yan MDF (cm)</label>
+          <input type="number" value="${b.cekYanK}" step="0.1"
+            onchange="setBolum(${i},'cekYanK',parseFloat(this.value))"></div>
+      </div>`;
+  }
+
+  return `
+    <div class="bk-h"><span class="bk-t">${i+1}. Bölüm</span>${badge}</div>
+    <div class="row"><div class="f"><label>Bölüm Tipi</label>
+      <select onchange="setBolumTip(${i},this.value)">
+        <option value="acik"    ${b.tip==='acik'?'selected':''}>🔓 Açık</option>
+        <option value="kapak"   ${b.tip==='kapak'?'selected':''}>🚪 Kapak</option>
+        <option value="cekmece" ${b.tip==='cekmece'?'selected':''}>🗄️ Çekmece</option>
+      </select></div></div>
+    <div id="bk-det-${i}">${det}</div>`;
+}
+
+function tumKapaklaraUygula(){
+  const tip=$('global-mentese').value;
+  if(!tip||!MENTESE[tip]) return;
+  const m=MENTESE[tip];
+  S.bolumler.forEach((b,i)=>{
+    if(b.tip!=='kapak') return;
+    b.menteseTip=tip;
+    b.yanPay=m.yanPay;
+    b.dikPay=m.dikPay;
+    b.bindirme=m.bindirme;
+  });
+  renderBolumlar();
+  $('global-mentese').value=tip;
+  $('global-mentese-aciklama').innerHTML=
+    `✓ <b style="color:var(--Y)">${m.emoji} ${m.ad}</b> — ${m.aciklama}`;
+}
+
+function globalMenteseGoster(){
+  const tip=$('global-mentese')?.value;
+  if(!tip||!MENTESE[tip]) return;
+  tumKapaklaraUygula();
+}
+
+function setBolumTip(i,tip){
+  S.bolumler[i].tip=tip;
+  $(`bk-${i}`).innerHTML=bolumHTML(i,S.bolumler[i]);
+}
+function setBolum(i,key,val){
+  S.bolumler[i][key]=val;
+}
+function setMentese(i,tip){
+  const m=MENTESE[tip];
+  if(!m) return;
+  S.bolumler[i].menteseTip=tip;
+  S.bolumler[i].yanPay=m.yanPay;
+  S.bolumler[i].dikPay=m.dikPay;
+  S.bolumler[i].bindirme=m.bindirme;
+  $(`bk-${i}`).innerHTML=bolumHTML(i,S.bolumler[i]);
+}
+
+/* ═══════════ ANA HESAP ═══════════ */
+function hesapla(){
+  // DOM'daki güncel değerleri state'e çek (kullanıcı render sonrası değiştirmiş olabilir)
+  S.bolumler.forEach((b,i)=>{
+    if(b.tip!=='kapak') return;
+    const selMentese=$(`mentese-sel-${i}`);
+    const selKanat=$(`kanat-sel-${i}`);
+    const inpBnd=$(`bnd-inp-${i}`);
+    const inpYan=$(`yan-inp-${i}`);
+    const inpDik=$(`dik-inp-${i}`);
+    if(selMentese){
+      const tip=selMentese.value;
+      const m=MENTESE[tip];
+      b.menteseTip=tip;
+      // Sadece override yapılmamışsa menteşeden al
+      b.bindirme=inpBnd?parseFloat(inpBnd.value):m.bindirme;
+      b.yanPay=inpYan?parseFloat(inpYan.value):m.yanPay;
+      b.dikPay=inpDik?parseFloat(inpDik.value):m.dikPay;
+    }
+    if(selKanat) b.kanatSayi=parseInt(selKanat.value);
+  });
+
+  const {G,K,B,icBos,bolumIc}=getIcBilgi();
+  const Y=parseFloat($('yuk').value)||200;
+  const D=parseFloat($('der').value)||60;
+  const tpay=parseFloat($('tpay').value)||0.3;
+
+  const araPanel=B-1;
+  const kasaParcalar=[
+    {isim:'Yan Panel',en:D,boy:Y,adet:2,tur:'kasa'},
+    ...(araPanel>0?[{isim:'Ara Panel',en:D,boy:Y,adet:araPanel,tur:'kasa'}]:[]),
+    {isim:'Üst Panel',en:icBos,boy:D,adet:1,tur:'kasa'},
+    {isim:'Alt Panel',en:icBos,boy:D,adet:1,tur:'kasa'},
+  ];
+
+  const bolumSonuclari=S.bolumler.map((b,i)=>{
+    const r={idx:i+1,tip:b.tip,bolumIc,parcalar:[]};
+    if(b.tip==='kapak'){
+      const m=MENTESE[b.menteseTip]||MENTESE.yarim_deve;
+      const yanPay=b.yanPay!=null?b.yanPay:m.yanPay;
+      const dikPay=b.dikPay!=null?b.dikPay:m.dikPay;
+      const bnd=b.bindirme!=null?b.bindirme:m.bindirme;
+      const bindirmeli=(b.menteseTip==='duz');
+      let kG,kY;
+      if(bindirmeli){
+        kG=bolumIc+bnd*2-yanPay;
+        kY=Y+bnd*2-dikPay;
+      } else {
+        kG=bolumIc-yanPay;
+        kY=Y-dikPay;
+      }
+      if(b.kanatSayi===2) kG=(kG-yanPay)/2;
+      r.kapakGen=kG; r.kapakYuk=kY; r.kanatSayi=b.kanatSayi; r.menteseTip=b.menteseTip;
+      for(let k=0;k<b.kanatSayi;k++)
+        r.parcalar.push({isim:`${i+1}. Kapak${b.kanatSayi>1?' '+(k+1):''}`,en:kG,boy:kY,tur:'kapak'});
+    }
+    if(b.tip==='cekmece'){
+      const onYuzG=bolumIc-b.cekYanPay;
+      const onYuzY=b.cekYuk-b.cekDikPay;
+      const kutuIcG=bolumIc-2*b.cekRayPay;
+      const kutuDer=D-b.cekArkaPay-K;
+      const kutuIcY=b.cekYuk-b.cekTabanK;
+      r.cekmece={onYuzG,onYuzY,kutuIcG,kutuDer,kutuIcY,yanK:b.cekYanK,sayi:b.cekSayi};
+      for(let c=0;c<b.cekSayi;c++){
+        const s=b.cekSayi>1?` #${c+1}`:'';
+        r.parcalar.push({isim:`${i+1}.Çek.ÖnYüz${s}`,en:onYuzG,boy:onYuzY,tur:'cekmece'});
+        r.parcalar.push({isim:`${i+1}.Çek.Yan${s}`,en:b.cekYanK,boy:kutuDer,tur:'cekmece',adet:2});
+        r.parcalar.push({isim:`${i+1}.Çek.Ön/Arka${s}`,en:kutuIcG,boy:b.cekYanK,tur:'cekmece',adet:2});
+        r.parcalar.push({isim:`${i+1}.Çek.Taban${s}`,en:kutuIcG,boy:kutuDer,tur:'cekmece'});
+      }
+    }
+    return r;
+  });
+
+  // Çizgi konumları
+  const cizgiler=[{pos:0,lbl:'Sol dış kenar'},{pos:K,lbl:'Sol yan panel sağ yüzü'}];
+  for(let i=0;i<araPanel;i++){
+    const x=K+(i+1)*bolumIc+i*K;
+    cizgiler.push({pos:x,lbl:`${i+1}. ara panel sol yüzü`},{pos:x+K,lbl:`${i+1}. ara panel sağ yüzü`});
+  }
+  cizgiler.push({pos:G-K,lbl:'Sağ yan panel sol yüzü'},{pos:G,lbl:'Sağ dış kenar'});
+
+  const tumParcalar=[...kasaParcalar];
+  bolumSonuclari.forEach(b=>b.parcalar.forEach(p=>{
+    const adet=p.adet||1;
+    for(let a=0;a<adet;a++) tumParcalar.push({isim:p.isim+(adet>1?` (${a+1}/${adet})`:''),en:p.en,boy:p.boy,tur:p.tur});
+  }));
+
+  S.sonuc={G,Y,D,K,B,tpay,icBos,bolumIc,araPanel,bolumSonuclari,kasaParcalar,tumParcalar,cizgiler};
+
+  renderKesim();
+  renderLevhaPlan();
+  goTab('kesim');
+}
+
+/* ═══════════ KESİM RENDER ═══════════ */
+function renderKesim(){
+  const {G,Y,K,B,icBos,bolumIc,araPanel,bolumSonuclari,tumParcalar,cizgiler,tpay}=S.sonuc;
+  let h='';
+
+  h+=`<div class="card"><div class="ct">📐 Özet</div>
+    <div class="rg">
+      <div class="rb y"><div class="rv">${fmt(icBos)} cm</div><div class="rl">Toplam İç Boşluk</div></div>
+      <div class="rb y"><div class="rv">${fmt(bolumIc)} cm</div><div class="rl">Bölüm İç Genişlik</div></div>
+      <div class="rb b"><div class="rv">${araPanel}</div><div class="rl">Ara Panel</div></div>
+      <div class="rb b"><div class="rv">${B}</div><div class="rl">Bölüm</div></div>
+    </div>
+    <p class="mv">${G} − (${B+1}×${K}) = ${fmt(icBos)} ÷ ${B} = <b style="color:var(--Y)">${fmt(bolumIc)} cm</b></p>
+  </div>`;
+
+  // Levha yerleşiminden parça→levha eşlemesi oluştur
+  const levhaEsleme={};
+  if(S.sonuc._levhaYerlesimleri){
+    S.sonuc._levhaYerlesimleri.forEach((lev,li)=>{
+      lev.yerlesimler.forEach(y=>{
+        levhaEsleme[y.isim]={levha:li+1, x:fmt(y.x), y:fmt(y.y), donmus:y.donmus};
+      });
+    });
+  }
+
+  const levhaBilgiVar=Object.keys(levhaEsleme).length>0;
+
+  h+=`<div class="card"><div class="ct">✂️ Kesim Listesi</div>
+    <table class="tbl"><thead><tr>
+      <th>Parça</th><th>En</th><th>Boy</th><th>Tür</th>
+      ${levhaBilgiVar?'<th>Levha</th><th>Konum</th>':''}
+    </tr></thead><tbody>`;
+
+  tumParcalar.forEach(p=>{
+    const cv=p.tur==='kapak'?'bv':p.tur==='cekmece'?'pv':p.tur==='kasa'?'gv':'mv';
+    const ct=p.tur==='kapak'?'tb':p.tur==='cekmece'?'tp':p.tur==='kasa'?'tg':'tm';
+    const e=levhaEsleme[p.isim];
+    h+=`<tr>
+      <td><b>${p.isim}</b></td>
+      <td class="${cv}">${fmt(p.en)} cm</td>
+      <td class="${cv}">${fmt(p.boy)} cm</td>
+      <td><span class="tag ${ct}">${p.tur}</span></td>
+      ${levhaBilgiVar?`
+        <td>${e?`<span class="tag ty">Levha ${e.levha}</span>`:'<span class="tag tm">—</span>'}</td>
+        <td class="mv">${e?`X:${e.x} Y:${e.y}${e.donmus?' 90°':''}`:'—'}</td>
+      `:''}
+    </tr>`;
+  });
+
+  h+=`</tbody></table>
+    ${!levhaBilgiVar?'<p class="mv" style="margin-top:8px">💡 Levha sekmesine gidince konum bilgisi burada da görünür.</p>':''}
+    ${tpay>0?`<p class="mv" style="margin-top:6px">⚠ Testere payı: ${fmt(tpay)}cm — levha planında uygulanır.</p>`:''}
+  </div>`;
+
+  h+=`<div class="card"><div class="ct">📍 Dikme Konumları</div>
+
+    <!-- Toggle -->
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button onclick="cizgiToggle('dis')" id="btn-dis"
+        style="flex:1;padding:7px;border-radius:6px;border:1px solid var(--Y);background:var(--Y);color:#111;font-size:.75rem;font-weight:800;cursor:pointer">
+        Dıştan Dışa
+      </button>
+      <button onclick="cizgiToggle('ic')" id="btn-ic"
+        style="flex:1;padding:7px;border-radius:6px;border:1px solid #3a3a3a;background:#252525;color:#888;font-size:.75rem;font-weight:800;cursor:pointer">
+        İçten İçe (Sol İç Yüzden)
+      </button>
+    </div>
+
+    <!-- DIŞTAN DIŞA -->
+    <div id="tablo-dis">
+      <p class="mv" style="margin-bottom:8px">Sol dış köşeden ölçülür.</p>
+      <table class="tbl"><thead><tr><th>#</th><th>Konum</th><th>Açıklama</th></tr></thead><tbody>`;
+
+  cizgiler.forEach((c,i)=>h+=`<tr>
+    <td class="mv">${i+1}</td>
+    <td class="yv">${fmt(c.pos)} cm</td>
+    <td class="mv">${c.lbl}</td>
+  </tr>`);
+
+  h+=`</tbody></table></div>
+
+    <!-- İÇTEN İÇE -->
+    <div id="tablo-ic" style="display:none">
+      <p class="mv" style="margin-bottom:8px">Sol yan panelin <b style="color:var(--Y)">iç yüzünden</b> ölçülür — mezura iç yüze dayansın.</p>
+      <table class="tbl">
+        <thead><tr><th>Dikme</th><th>Sol Yüzü</th><th>Sağ Yüzü</th><th>Bölüm Genişliği</th></tr></thead>
+        <tbody>`;
+
+  for(let i=0;i<araPanel;i++){
+    // Dıştan: K + (i+1)*bolumIc + i*K
+    // İçten (sol iç yüzden): dıştan - K (sol yan paneli düş)
+    const solYuzDis = K + (i+1)*bolumIc + i*K;
+    const sagYuzDis = solYuzDis + K;
+    const solYuzIc  = solYuzDis - K;  // sol yan panel iç yüzünden
+    const sagYuzIc  = sagYuzDis - K;
+    h+=`<tr>
+      <td><b>${i+1}. Dikme</b></td>
+      <td class="yv">${fmt(solYuzIc)} cm</td>
+      <td class="bv">${fmt(sagYuzIc)} cm</td>
+      <td class="mv">${fmt(bolumIc)} cm</td>
+    </tr>`;
+  }
+
+  h+=`</tbody></table>
+      <div class="info" style="margin-top:10px;font-size:.72rem;padding:8px 10px">
+        💡 <b>Nasıl kullanılır:</b> Mezurayı sol yan panelin iç yüzüne daya.
+        Sarı sayı = dikmenin sol yüzü, mavi sayı = dikmenin sağ yüzü.
+        Arası (${fmt(K)}cm) dikmeni koy.
+      </div>
+    </div>
+
+  </div>`;
+
+  h+=`<div class="card"><div class="ct">🗂️ Ön Görünüm</div>
+    <div class="cv-wrap"><canvas id="dolap-cv"></canvas></div>
+    <p class="hint">← kaydır →</p></div>`;
+
+  $('kesim-ic').innerHTML=h;
+  setTimeout(()=>drawDolap(),30);
+}
+
+function cizgiToggle(mod){
+  $('tablo-dis').style.display = mod==='dis'?'block':'none';
+  $('tablo-ic').style.display  = mod==='ic' ?'block':'none';
+  $('btn-dis').style.background= mod==='dis'?'var(--Y)':'#252525';
+  $('btn-dis').style.color     = mod==='dis'?'#111':'#888';
+  $('btn-dis').style.borderColor=mod==='dis'?'var(--Y)':'#3a3a3a';
+  $('btn-ic').style.background = mod==='ic' ?'var(--Y)':'#252525';
+  $('btn-ic').style.color      = mod==='ic' ?'#111':'#888';
+  $('btn-ic').style.borderColor= mod==='ic' ?'var(--Y)':'#3a3a3a';
+}
+
+function drawDolap(){
+  const cv=$('dolap-cv'); if(!cv) return;
+  const {G,Y,K,B,bolumIc,bolumSonuclari}=S.sonuc;
+  const W=Math.max(300,cv.parentElement.clientWidth-20);
+  const sc=(W-40)/G;
+  const H=Math.min(240,Y*sc+10);
+  cv.width=W; cv.height=H+40;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H+40);
+  const ox=20,oy=28,h=H;
+  ctx.fillStyle='#2e2200'; ctx.fillRect(ox,oy,G*sc,h);
+  ctx.strokeStyle='var(--Y)'; ctx.lineWidth=1.5; ctx.strokeRect(ox,oy,G*sc,h);
+  ctx.fillStyle='#3a2a00';
+  ctx.fillRect(ox,oy,K*sc,h);
+  ctx.fillRect(ox+(G-K)*sc,oy,K*sc,h);
+  const rk={kapak:'#001428',cekmece:'#1a0028',acik:'#0a0a0a'};
+  bolumSonuclari.forEach((b,i)=>{
+    const bx=ox+(K+i*(bolumIc+K))*sc, bw=bolumIc*sc;
+    ctx.fillStyle=rk[b.tip]||'#0a0a0a'; ctx.fillRect(bx,oy,bw,h);
+    if(i<B-1){ctx.fillStyle='#3a2a00'; ctx.fillRect(bx+bw,oy,K*sc,h);}
+    ctx.fillStyle=b.tip==='kapak'?'#42c8f5':b.tip==='cekmece'?'#f542b4':'#444';
+    ctx.font=`bold ${Math.min(11,bw/4)}px system-ui`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(b.tip==='kapak'?'🚪':b.tip==='cekmece'?'🗄️':'—',bx+bw/2,oy+h/2-8);
+    ctx.font=`${Math.min(9,bw/5)}px system-ui`; ctx.fillStyle='#888';
+    ctx.fillText(fmt(bolumIc),bx+bw/2,oy+h/2+8);
+  });
+  ctx.fillStyle='#f5c842'; ctx.font='bold 10px system-ui'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+  ctx.fillText(`↔ ${S.sonuc.G} cm`,ox+G*sc/2,oy-10);
+}
+
+/* ═══════════ KAPAK PANE ═══════════ */
+function kapakModDegis(){
+  const mod=$('kapak-mod').value;
+  $('kapak-manuel-alan').style.display=mod==='icten'?'block':'none';
+  $('kapak-oto-bilgi').style.display=mod==='oto'?'block':'none';
+  if(mod==='oto'&&S.sonuc){
+    $('kapak-oto-bilgi').innerHTML=`Hesap: bölüm iç genişliği <b>${fmt(S.sonuc.bolumIc)} cm</b>, yükseklik <b>${fmt(S.sonuc.Y)} cm</b>`;
+  }
+  renderKapakPane();
+}
+
+function renderKapakPane(){
+  const mod=$('kapak-mod')?.value||'oto';
+  const B=S.bolumler.length||parseInt($('bn').value)||1;
+
+  // İçten içe girdi alanları
+  if(mod==='icten'){
+    const el=$('icten-liste'); if(!el) return;
+    if(!el.children.length||el.children.length!==B){
+      el.innerHTML='';
+      S.bolumler.forEach((b,i)=>{
+        if(b.tip==='acik') return;
+        const d=document.createElement('div');
+        d.className='row'; d.style.marginBottom='8px';
+        d.innerHTML=`
+          <div class="f"><label>${i+1}. Bölüm — İç Gen. (cm)</label>
+            <input type="number" id="ic-gen-${i}" placeholder="ör: 40.3" step="0.1"></div>
+          <div class="f"><label>İç Yük. (cm)</label>
+            <input type="number" id="ic-yuk-${i}" placeholder="ör: 196" step="0.1"></div>`;
+        el.appendChild(d);
+      });
+    }
+  }
+
+  // Bölüm kapak ayar kartları
+  const el=$('kapak-bolumler'); if(!el) return;
+  el.innerHTML='';
+  S.bolumler.forEach((b,i)=>{
+    if(b.tip==='acik') return;
+    const m=MENTESE[b.menteseTip]||MENTESE.yarim_deve;
+    const d=document.createElement('div');
+    d.className='card';
+    d.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <b>${i+1}. Bölüm</b>
+        <span class="tag ${b.tip==='kapak'?'tb':'tp'}">${b.tip==='kapak'?'Kapak':'Çekmece'}</span>
+      </div>
+      ${b.tip==='kapak'?`
+      <div class="row">
+        <div class="f"><label>Menteşe</label>
+          <select onchange="setMentese(${i},this.value);renderKapakPane()">
+            ${Object.entries(MENTESE).map(([k,v])=>`<option value="${k}" ${b.menteseTip===k?'selected':''}>${v.emoji} ${v.ad}</option>`).join('')}
+          </select></div>
+        <div class="f"><label>Kanat</label>
+          <select onchange="setBolum(${i},'kanatSayi',parseInt(this.value));renderKapakPane()">
+            <option value="1" ${b.kanatSayi===1?'selected':''}>1 kanat</option>
+            <option value="2" ${b.kanatSayi===2?'selected':''}>2 kanat</option>
+          </select></div>
+      </div>
+      <div class="info" style="font-size:.7rem;padding:7px 10px;margin:4px 0 8px">
+        <b>${m.emoji} ${m.ad}:</b> ${m.aciklama}
+      </div>
+      ${b.menteseTip==='duz'?`<div class="row">
+        <div class="f"><label>Bindirme (cm, tek yön)</label>
+          <input type="number" id="bnd-${i}" value="${b.bindirme||1.7}" step="0.1"
+            onchange="setBolum(${i},'bindirme',parseFloat(this.value))"></div></div>`:''}
+      <div class="row">
+        <div class="f"><label>Yan Pay — toplam (cm)</label>
+          <input type="number" id="yp-${i}" value="${b.yanPay!=null?b.yanPay:m.yanPay}" step="0.05"
+            onchange="setBolum(${i},'yanPay',parseFloat(this.value))"></div>
+        <div class="f"><label>Üst+Alt Pay — toplam (cm)</label>
+          <input type="number" id="dp-${i}" value="${b.dikPay!=null?b.dikPay:m.dikPay}" step="0.05"
+            onchange="setBolum(${i},'dikPay',parseFloat(this.value))"></div>
+      </div>` : `
+      <div class="row">
+        <div class="f"><label>Yan Pay (cm)</label>
+          <input type="number" value="${b.cekYanPay}" step="0.05" onchange="setBolum(${i},'cekYanPay',parseFloat(this.value))"></div>
+        <div class="f"><label>Üst/Alt Pay (cm)</label>
+          <input type="number" value="${b.cekDikPay}" step="0.05" onchange="setBolum(${i},'cekDikPay',parseFloat(this.value))"></div>
+      </div>`}`;
+    el.appendChild(d);
+  });
+}
+
+/* ═══════════ KAPAK HESAPLA ═══════════ */
+function hesaplaKapaklar(){
+  const mod=$('kapak-mod').value;
+  const K=S.sonuc?S.sonuc.K:parseFloat($('kln').value)||1.8;
+  const Y=S.sonuc?S.sonuc.Y:parseFloat($('yuk').value)||200;
+  const defBolumIc=S.sonuc?S.sonuc.bolumIc:null;
+
+  if(mod==='oto'&&!defBolumIc){
+    $('kapak-sonuc').innerHTML='<div class="warn">⚠ Önce Giriş sekmesinden Hesapla butonuna basın.</div>';
+    return;
+  }
+
+  let html='';
+  const listeSatirlar=[];
+
+  S.bolumler.forEach((b,i)=>{
+    if(b.tip==='acik'){
+      html+=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><b>${i+1}. Bölüm</b><span class="tag tm">🔓 Açık</span></div></div>`;
+      return;
+    }
+
+    // Bölüm iç genişliği — otomatik veya manuel
+    let bolumIc;
+    if(mod==='icten'){
+      const icG=parseFloat($(`ic-gen-${i}`)?.value);
+      const icY=parseFloat($(`ic-yuk-${i}`)?.value);
+      bolumIc = !isNaN(icG) ? icG : defBolumIc;
+      if(!isNaN(icY)) b._ictenYuk=icY;
+    } else {
+      bolumIc=defBolumIc;
+    }
+
+    const kullanYuk = mod==='icten' && b._ictenYuk ? b._ictenYuk : Y;
+
+    if(b.tip==='cekmece'){
+      const onYuzG=bolumIc-b.cekYanPay;
+      const onYuzY=b.cekYuk-b.cekDikPay;
+      html+=`<div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b>${i+1}. Bölüm</b><span class="tag tp">🗄️ Çekmece</span></div>
+        <div class="rg">
+          <div class="rb p"><div class="rv">${fmt(onYuzG)} cm</div><div class="rl">Ön Yüz Genişlik</div></div>
+          <div class="rb p"><div class="rv">${fmt(onYuzY)} cm</div><div class="rl">Ön Yüz Yükseklik</div></div>
+        </div>
+      </div>`;
+      listeSatirlar.push({isim:`${i+1}. Çekmece Ön Yüzü`,en:onYuzG,boy:onYuzY,tur:'cekmece'});
+      return;
+    }
+
+    // Kapak hesabı
+    const m=MENTESE[b.menteseTip]||MENTESE.yarim_deve;
+    const yanPay=b.yanPay!=null?b.yanPay:m.yanPay;
+    const dikPay=b.dikPay!=null?b.dikPay:m.dikPay;
+    const bnd=b.bindirme!=null?b.bindirme:m.bindirme;
+
+    let kG,kY;
+    if(m.kapakTip==='bindirme'){
+      kG=bolumIc+bnd*2-yanPay;
+      kY=kullanYuk+bnd*2-dikPay;
+    } else {
+      kG=bolumIc-yanPay;
+      kY=kullanYuk-dikPay;
+    }
+    const kanatG=b.kanatSayi===2?(kG-yanPay)/2:kG;
+
+    html+=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <b>${i+1}. Bölüm</b><span class="tag tb">🚪 Kapak</span>
+      </div>
+      <div class="rg">
+        <div class="rb b"><div class="rv">${fmt(kanatG)} cm</div><div class="rl">Kapak Genişliği${b.kanatSayi===2?' (kanat)':''}</div></div>
+        <div class="rb b"><div class="rv">${fmt(kY)} cm</div><div class="rl">Kapak Yüksekliği</div></div>
+        ${b.kanatSayi===2?`<div class="rb y"><div class="rv">2×</div><div class="rl">Kanat</div></div>`:''}
+      </div>
+      <div class="info" style="font-size:.7rem;padding:7px 10px">
+        ${m.emoji} <b>${m.ad}</b> · Yan pay: ${yanPay}cm · Üst/Alt pay: ${dikPay}cm
+        ${m.kapakTip==='bindirme'?` · Bindirme: ${bnd}cm`:''}
+        ${mod==='icten'?`<br>İçten içe ölçü: <b>${fmt(bolumIc)} × ${fmt(kullanYuk)} cm</b>`:''}
+      </div>
+    </div>`;
+
+    for(let k=0;k<b.kanatSayi;k++)
+      listeSatirlar.push({isim:`${i+1}. Kapak${b.kanatSayi>1?' '+(k+1):''}`,en:kanatG,boy:kY,tur:'kapak'});
+  });
+
+  // Özet
+  if(listeSatirlar.length>0){
+    // Aynı ölçüdeki kapakları grupla
+    const gruplar={};
+    listeSatirlar.forEach(s=>{
+      const k=`${fmt(s.en)}x${fmt(s.boy)}_${s.tur}`;
+      if(!gruplar[k]) gruplar[k]={...s,adet:0};
+      gruplar[k].adet++;
+    });
+    html+=`<div class="card"><div class="ct">📋 Kesim Özeti</div>
+      <table class="tbl"><thead><tr><th>Boyut</th><th>Tür</th><th>Adet</th></tr></thead><tbody>`;
+    Object.values(gruplar).forEach(v=>{
+      const cv=v.tur==='kapak'?'bv':'pv';
+      const ct=v.tur==='kapak'?'tb':'tp';
+      html+=`<tr><td class="${cv}">${fmt(v.en)} × ${fmt(v.boy)} cm</td><td><span class="tag ${ct}">${v.tur}</span></td><td class="yv">${v.adet}×</td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+
+  $('kapak-sonuc').innerHTML=html;
+  S.kapakSonucu=listeSatirlar;
+}
+
+/* ═══════════ KULP HESAP ═══════════ */
+function kulpAdetDegis(){
+  $('kp-aralik-row').style.display=$('kp-adet').value==='2'?'flex':'none';
+  hesaplaKulp();
+}
+function kulpKonumDegis(){
+  const v=$('kp-ykon').value;
+  $('kp-ymes-f').style.display=v==='orta'?'none':'flex';
+  const lbls={ust:'Üstten (cm)',alt:'Alttan (cm)',ozel:'Üstten özel (cm)'};
+  $('kp-ymes-lbl').textContent=lbls[v]||'Mesafe (cm)';
+  hesaplaKulp();
+}
+function kulpXKonumDegis(){
+  const v=$('kp-xkon').value;
+  $('kp-xmes-f').style.display=v==='orta'?'none':'flex';
+  const lbls={sol:'Soldan (cm)',sag:'Sağdan (cm)'};
+  if($('kp-xmes-lbl')) $('kp-xmes-lbl').textContent=lbls[v]||'Mesafe (cm)';
+  hesaplaKulp();
+}
+function hesaplaKulp(){
+  let gen=parseFloat($('kp-gen').value);
+  let yuk=parseFloat($('kp-yuk').value);
+  if(isNaN(gen)&&S.kapakSonucu?.length>0) gen=S.kapakSonucu[0].en;
+  if(isNaN(yuk)&&S.kapakSonucu?.length>0) yuk=S.kapakSonucu[0].boy;
+  if(isNaN(gen)||isNaN(yuk)){
+    $('kulp-sonuc').innerHTML='<div class="warn">Kapak ölçüsü girin veya önce Kapak sekmesinde hesaplama yapın.</div>';
+    return;
+  }
+  const cap   = parseFloat($('kp-cap').value)||3.5;
+  const adet  = parseInt($('kp-adet').value)||1;
+  const aralik= parseFloat($('kp-aralik').value)||6.4;
+  const ykon  = $('kp-ykon').value;
+  const xkon  = $('kp-xkon').value;
+  const ymes  = parseFloat($('kp-ymes').value)||10;
+  const xmes  = parseFloat($('kp-xmes')?.value)||5;
+  const kadat = parseInt($('kp-kadat').value)||1;
+
+  // Dikey
+  let delikY;
+  if(ykon==='orta')     delikY=yuk/2;
+  else if(ykon==='ust') delikY=ymes;
+  else if(ykon==='alt') delikY=yuk-ymes;
+  else                  delikY=ymes;
+
+  // Yatay
+  let delikX;
+  if(xkon==='orta')     delikX=gen/2;
+  else if(xkon==='sol') delikX=xmes;
+  else                  delikX=gen-xmes;
+
+  const x1=adet===2?fmt(delikX-aralik/2):null;
+  const x2=adet===2?fmt(delikX+aralik/2):null;
+
+  const yAcik=ykon==='orta'?'Tam orta':ykon==='ust'?`Üstten ${ymes}cm`:ykon==='alt'?`Alttan ${ymes}cm`:`Üstten ${ymes}cm`;
+  const xAcik=xkon==='orta'?'Tam orta':xkon==='sol'?`Soldan ${xmes}cm`:`Sağdan ${xmes}cm`;
+
+  let html=`<div class="card"><div class="ct">🔘 Delik Konumu</div>
+    <div class="rg">
+      <div class="rb b"><div class="rv">${fmt(delikX)} cm</div><div class="rl">X — Sol kenardan</div></div>
+      <div class="rb b"><div class="rv">${fmt(delikY)} cm</div><div class="rl">Y — Üstten</div></div>
+      <div class="rb y"><div class="rv">⌀${fmt(cap)} cm</div><div class="rl">Delik Çapı</div></div>
+      <div class="rb g"><div class="rv">${fmt(gen)}×${fmt(yuk)}</div><div class="rl">Kapak (cm)</div></div>
+    </div>
+    ${adet===2?`<div class="rg">
+      <div class="rb p"><div class="rv">${x1} cm</div><div class="rl">1. Delik X</div></div>
+      <div class="rb p"><div class="rv">${x2} cm</div><div class="rl">2. Delik X</div></div>
+    </div>`:''}
+    <div class="info" style="font-size:.72rem;padding:8px 10px;margin:8px 0">
+      ↕ <b>${yAcik}</b> &nbsp;·&nbsp; ↔ <b>${xAcik}</b>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Kapak</th><th>X (sol kenardan)</th><th>Y (üstten)</th><th>Çap</th></tr></thead><tbody>`;
+
+  for(let k=1;k<=kadat;k++){
+    const xt=adet===2?`${x1} & ${x2} cm`:`${fmt(delikX)} cm`;
+    html+=`<tr>
+      <td class="mv">${k}</td>
+      <td class="bv">${xt}</td>
+      <td class="bv">${fmt(delikY)} cm</td>
+      <td><span class="tag ty">⌀${fmt(cap)}cm</span></td>
+    </tr>`;
+  }
+  html+=`</tbody></table></div>`;
+  $('kulp-sonuc').innerHTML=html;
+}
+
+/* ═══════════ RAFLAR ═══════════ */
+function hesaplaRaflar(){
+  if(!S.sonuc){$('raf-sonuc').innerHTML='<div class="warn">Önce Giriş → Hesapla.</div>';return;}
+  const {bolumSonuclari,bolumIc,D}=S.sonuc;
+  const pimCap=parseFloat($('pimCap').value)||5;
+  const globalAralik=parseFloat($('pimAralik').value)||0.25;
+  const pimKenar=parseFloat($('pimKenar').value)||3.7;
+  const pimAlt=parseFloat($('pimAlt').value)||15;
+  const pimUst=parseFloat($('pimUst').value)||185;
+  let html='';
+  bolumSonuclari.forEach((b,i)=>{
+    const aralik=parseFloat($(`raf-pim-${i}`)?.value)||globalAralik;
+    const rafStr=$(`raf-pos-${i}`)?.value||'';
+    const rafPos=rafStr.split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n));
+    const delikSayisi=Math.floor((pimUst-pimAlt)/aralik)+1;
+    html+=`<div class="card"><div class="ct">${i+1}. Bölüm — ⌀${pimCap}mm / ${aralik}cm</div>
+      <div class="rg">
+        <div class="rb b"><div class="rv">${delikSayisi}</div><div class="rl">Delik/Sütun</div></div>
+        <div class="rb g"><div class="rv">${rafPos.length}</div><div class="rl">Raf</div></div>
+      </div>
+      <table class="tbl"><thead><tr><th>#</th><th>Yerden (cm)</th><th>Durum</th></tr></thead><tbody>`;
+    for(let d=0;d<delikSayisi;d++){
+      const y=pimAlt+d*aralik;
+      if(y>pimUst+0.001) break;
+      const var_=rafPos.some(r=>Math.abs(r-y)<aralik*0.4);
+      html+=`<tr><td class="mv">${d+1}</td><td class="yv">${fmt(y)} cm</td><td>${var_?'<span class="tag tg">🔩 RAF</span>':'<span class="tag tm">—</span>'}</td></tr>`;
+    }
+    html+=`</tbody></table>`;
+    if(rafPos.length>0){
+      html+=`<hr><table class="tbl"><thead><tr><th>Raf</th><th>Yerden</th><th>Boyut</th></tr></thead><tbody>`;
+      rafPos.forEach((r,ri)=>html+=`<tr><td><b>${ri+1}</b></td><td class="gv">${r} cm</td><td class="gv">${fmt(bolumIc)} × ${fmt(D-2)} cm</td></tr>`);
+      html+=`</tbody></table>`;
+    }
+    html+=`</div>`;
+  });
+  $('raf-sonuc').innerHTML=html;
+}
+
+function renderRafBolumlar(){
+  if(!S.sonuc) return;
+  let html='';
+  S.sonuc.bolumSonuclari.forEach((b,i)=>{
+    html+=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <b>${i+1}. Bölüm</b><span class="tag ${b.tip==='kapak'?'tb':b.tip==='cekmece'?'tp':'tm'}">${b.tip}</span>
+      </div>
+      <div class="row">
+        <div class="f"><label>Pim Override</label>
+          <select id="raf-pim-${i}"><option value="">Global</option><option value="0.25">0.25cm</option><option value="0.50">0.50cm</option></select></div>
+        <div class="f"><label>Raf Konumları (cm, virgülle)</label>
+          <input type="text" id="raf-pos-${i}" placeholder="ör: 40, 80, 120"></div>
+      </div>
+    </div>`;
+  });
+  $('raf-bolumlar').innerHTML=html;
+}
+
+/* ═══════════ ÇEKMECE ═══════════ */
+function hesaplaCekmece(){
+  const icGen   = parseFloat($('ck-icgen').value)   || 0;
+  const icYuk   = parseFloat($('ck-icyuk').value)   || 0;
+  const der     = parseFloat($('ck-der').value)     || 0;
+  const mdf     = parseFloat($('ck-mdf').value)     || 1.8;
+  const sayi    = parseInt($('ck-sayi').value)      || 1;
+  const onYuk   = parseFloat($('ck-onyuk').value)   || 15;
+  const pay     = parseFloat($('ck-pay').value)     || 0.3;
+  const altBas  = parseFloat($('ck-alt').value)     || 0;
+  const onPay   = parseFloat($('ck-onpay').value)   || 0.3;
+  const onDikPay= parseFloat($('ck-ondikpay').value)|| 0.15;
+  const rayTip  = $('ck-raytip').value;
+  const rayBoy  = parseFloat($('ck-rayboy').value)  || 40;
+  const rayPay  = parseFloat($('ck-raypay').value)  || 1.3;
+  const arkaPay = parseFloat($('ck-arkapay').value) || 1.0;
+  const tabanK  = parseFloat($('ck-tabank').value)  || 0.8;
+  const yanK    = parseFloat($('ck-yank').value)    || 1.8;
+
+  // ── RAY TİPİNE GÖRE KUTU ÖLÇÜSÜ ──
+  let kutuDisGen, kutuIcGen, kutuIcYuk, kutuDer;
+  let yanPanelVar = true;
+  let rayAciklama = '';
+
+  kutuDer  = rayBoy; // derinlik her zaman ray boyu
+  kutuIcYuk= onYuk - tabanK;
+
+  if(rayTip === 'teleskopik'){
+    // Ray iki yana vidalanır, kutu rayın içine girer
+    // Kutu dış genişlik = iç boşluk - 2×ray payı
+    // Kutu iç genişlik = kutu dış - 2×yan MDF
+    kutuDisGen = icGen - 2*rayPay;
+    kutuIcGen  = kutuDisGen - 2*yanK;
+    yanPanelVar= true;
+    rayAciklama= `Yan panele vidalanır. Ray merkezi = vida hizası.`;
+  } else if(rayTip === 'yan'){
+    // Yan ray (plastik/epoksi): kasa yan paneline yapışık ray
+    // Kutu YAN PANELİ YOK — ray kendisi kılavuz görevi görür
+    // Kutu genişlik = iç boşluk - 2×ray kalınlığı
+    kutuDisGen = icGen - 2*rayPay;
+    kutuIcGen  = kutuDisGen; // yan panel yok
+    yanPanelVar= false;
+    rayAciklama= `Yan panele vidalanır, ALT KENARDAN işaretle. Kutu yan paneli yok.`;
+  } else {
+    // Alttan ray: ray alt panele vidalanır, çekmece üstünden kayar
+    // Yanda pay yok, kutu tam iç boşluğa giriyor
+    kutuDisGen = icGen;
+    kutuIcGen  = kutuDisGen - 2*yanK;
+    yanPanelVar= true;
+    rayAciklama= `Alt panele/kasaya vidalanır. Genelde tek/çift çekmecede kullanılır. Çoklu çekmecede her bölme için ara panel gerekir.`;
+  }
+
+  // Ön yüz
+  const onYuzGen = icGen - onPay;
+  const onYuzYuk = onYuk - onDikPay;
+
+  // ── ÇEKMECE KONUMLARI ──
+  const ckKonumlar = [];
+  for(let i=0;i<sayi;i++){
+    const onYuzAlt = altBas + i*(onYuk+pay);
+    const onYuzUst = onYuzAlt + onYuk;
+
+    let rayAlt, rayMrk, rayUst, vidaAciklama;
+
+    if(rayTip === 'teleskopik'){
+      // Ray alt kenarı = ön yüz alt + taban kalınlığı
+      // Ray merkezi = ray alt + kutu iç yükseklik / 2
+      rayAlt = onYuzAlt + tabanK;
+      rayMrk = rayAlt + kutuIcYuk/2;
+      vidaAciklama = `Merkez: ${fmt(rayMrk)}cm ⭐`;
+    } else if(rayTip === 'yan'){
+      // Yan ray: alt kenardan vidalanır
+      rayAlt = onYuzAlt + tabanK;
+      rayUst = onYuzAlt + onYuk - tabanK;
+      rayMrk = rayAlt; // vida alt kenardan
+      vidaAciklama = `Alt kenar: ${fmt(rayAlt)}cm ⭐`;
+    } else {
+      // Alttan ray: sabit konumda, çekmece üzerinde kayar
+      rayAlt = onYuzAlt; // ray alt yüzeye vidalı, çekmece üstünde
+      rayMrk = null;
+      vidaAciklama = `Alt panelde sabit`;
+    }
+
+    ckKonumlar.push({onYuzAlt, onYuzUst, rayAlt, rayMrk, vidaAciklama});
+  }
+
+  const toplamYuk = altBas + sayi*onYuk + (sayi-1)*pay;
+  const kalanUst  = icYuk - toplamYuk;
+  const maxRayBoy = der - mdf - arkaPay;
+  const rayFazla  = rayBoy - maxRayBoy;
+
+  // ── UYARILAR ──
+  let uyarilar = [];
+  if(rayFazla > 0)
+    uyarilar.push(`⚠ Ray ${fmt(rayFazla)}cm fazla! Max: ${fmt(maxRayBoy)}cm — ${Math.floor(maxRayBoy/5)*5}cm ray kullan`);
+  if(toplamYuk > icYuk)
+    uyarilar.push(`⚠ Çekmeceler sığmıyor! Gereken: ${fmt(toplamYuk)}cm, Mevcut: ${icYuk}cm`);
+  if(kutuIcGen < 20)
+    uyarilar.push(`⚠ Kutu iç genişliği çok dar: ${fmt(kutuIcGen)}cm`);
+  if(rayTip==='alttan' && sayi>2)
+    uyarilar.push(`⚠ Alttan ray ${sayi} çekmecede kullanmak zor — her bölme arası panel gerekir`);
+
+  // ── HTML ──
+  let html = '';
+  uyarilar.forEach(u => html+=`<div class="warn">${u}</div>`);
+
+  // Özet
+  html+=`<div class="card"><div class="ct">📐 Özet</div>
+    <div class="rg">
+      <div class="rb y"><div class="rv">${fmt(kutuIcGen)} cm</div><div class="rl">Kutu İç Genişlik</div></div>
+      <div class="rb y"><div class="rv">${fmt(kutuDer)} cm</div><div class="rl">Kutu Derinliği</div></div>
+      <div class="rb b"><div class="rv">${fmt(kutuIcYuk)} cm</div><div class="rl">Kutu İç Yük.</div></div>
+      <div class="rb b"><div class="rv">${fmt(onYuzGen)} cm</div><div class="rl">Ön Yüz Gen.</div></div>
+      <div class="rb g"><div class="rv">${fmt(onYuzYuk)} cm</div><div class="rl">Ön Yüz Yük.</div></div>
+      <div class="rb ${kalanUst>=0?'g':'p'}"><div class="rv">${fmt(kalanUst)} cm</div><div class="rl">Üstte Kalan</div></div>
+    </div>
+    <div class="info" style="font-size:.72rem;padding:8px 10px">
+      🔧 <b>${rayTip==='teleskopik'?'Teleskopik':rayTip==='yan'?'Yan Ray':'Alttan Ray'}</b> 
+      ${rayBoy}cm · ${rayAciklama}
+      ${yanPanelVar?'':'<br>⚠ <b>Yan panel yok</b> — ray kılavuz görevi görüyor'}
+    </div>
+  </div>`;
+
+  // Ray konumları tablosu
+  const rayBaslik = rayTip==='teleskopik' ? 'Ray Merkezi ⭐' : rayTip==='yan' ? 'Alt Kenar ⭐' : 'Alt Panelde';
+  html+=`<div class="card"><div class="ct">🔧 Ray Konumları (yerden, ${rayTip==='alttan'?'alt panele':'yan panele'})</div>
+    <table class="tbl">
+      <thead><tr>
+        <th>#</th><th>Ön Yüz Alt</th><th>Ön Yüz Üst</th>
+        <th>Ray Alt</th><th>${rayBaslik}</th>
+      </tr></thead><tbody>`;
+
+  ckKonumlar.forEach((c,i)=>{
+    html+=`<tr>
+      <td><b>${i+1}</b></td>
+      <td class="mv">${fmt(c.onYuzAlt)} cm</td>
+      <td class="mv">${fmt(c.onYuzUst)} cm</td>
+      <td class="bv">${fmt(c.rayAlt)} cm</td>
+      <td class="yv">${c.rayMrk!=null?fmt(c.rayMrk)+' cm':c.vidaAciklama}</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table>`;
+  if(rayTip==='teleskopik')
+    html+=`<div class="info" style="margin-top:8px;font-size:.72rem;padding:8px 10px">⭐ Bu cm'yi yan panele işaretle → rayı bu noktaya ortala → vida.</div>`;
+  else if(rayTip==='yan')
+    html+=`<div class="info" style="margin-top:8px;font-size:.72rem;padding:8px 10px">⭐ Bu cm'yi yan panele işaretle → rayı alt kenardan bu noktaya dayayarak vida.</div>`;
+  else
+    html+=`<div class="info" style="margin-top:8px;font-size:.72rem;padding:8px 10px">⭐ Ray alt panele vidalıdır. Çekmece altta kayar. Her çekmece için ayrı bölme arası panel gerekir.</div>`;
+  html+=`</div>`;
+
+  // Kesim listesi — ray tipine göre farklı
+  html+=`<div class="card"><div class="ct">✂️ Kesim Listesi — 1 Çekmece</div>
+    <table class="tbl">
+      <thead><tr><th>Parça</th><th>En</th><th>Boy</th><th>Adet</th><th>MDF</th></tr></thead>
+      <tbody>`;
+
+  if(rayTip==='teleskopik' || rayTip==='alttan'){
+    html+=`
+      <tr><td><b>Yan</b></td><td class="gv">${fmt(kutuDer)} cm</td><td class="gv">${fmt(kutuIcYuk)} cm</td><td class="mv">2×</td><td class="mv">${yanK}cm</td></tr>
+      <tr><td><b>Ön & Arka</b></td><td class="gv">${fmt(kutuIcGen)} cm</td><td class="gv">${fmt(kutuIcYuk)} cm</td><td class="mv">2×</td><td class="mv">${yanK}cm</td></tr>`;
+  } else {
+    // Yan ray — yan panel yok
+    html+=`
+      <tr><td><b>Ön & Arka</b></td><td class="gv">${fmt(kutuIcGen)} cm</td><td class="gv">${fmt(kutuIcYuk)} cm</td><td class="mv">2×</td><td class="mv">${tabanK}cm</td></tr>`;
+  }
+
+  html+=`
+      <tr><td><b>Taban</b></td><td class="gv">${fmt(kutuIcGen)} cm</td><td class="gv">${fmt(kutuDer)} cm</td><td class="mv">1×</td><td class="mv">${tabanK}cm</td></tr>
+      <tr><td><b>Ön Yüz</b></td><td class="bv">${fmt(onYuzGen)} cm</td><td class="bv">${fmt(onYuzYuk)} cm</td><td class="mv">1×</td><td class="mv">${mdf}cm</td></tr>
+      ${rayTip==='alttan'?`<tr><td><b>Bölme Paneli</b></td><td class="pv">${fmt(icGen)} cm</td><td class="pv">${fmt(kutuDer)} cm</td><td class="mv">${sayi-1>0?sayi-1+'×':'—'}</td><td class="mv">${mdf}cm</td></tr>`:''}
+    </tbody></table>
+    <p class="mv" style="margin-top:8px">${yanPanelVar?'':'⚠ Yan panel yok — ray kılavuz.'}</p>
+  </div>`;
+
+  // Toplam kesim
+  html+=`<div class="card"><div class="ct">✂️ Toplam — ${sayi} Çekmece</div>
+    <table class="tbl">
+      <thead><tr><th>Parça</th><th>En</th><th>Boy</th><th>Toplam</th></tr></thead>
+      <tbody>
+      ${(rayTip==='teleskopik'||rayTip==='alttan')?`
+        <tr><td><b>Yan</b></td><td class="gv">${fmt(kutuDer)}</td><td class="gv">${fmt(kutuIcYuk)} cm</td><td class="yv">${sayi*2}×</td></tr>`:''}
+        <tr><td><b>Ön & Arka</b></td><td class="gv">${fmt(kutuIcGen)}</td><td class="gv">${fmt(kutuIcYuk)} cm</td><td class="yv">${sayi*2}×</td></tr>
+        <tr><td><b>Taban</b></td><td class="gv">${fmt(kutuIcGen)}</td><td class="gv">${fmt(kutuDer)} cm</td><td class="yv">${sayi}×</td></tr>
+        <tr><td><b>Ön Yüz</b></td><td class="bv">${fmt(onYuzGen)}</td><td class="bv">${fmt(onYuzYuk)} cm</td><td class="yv">${sayi}×</td></tr>
+        ${rayTip==='alttan'&&sayi>1?`<tr><td><b>Bölme Paneli</b></td><td class="pv">${fmt(icGen)}</td><td class="pv">${fmt(kutuDer)} cm</td><td class="yv">${sayi-1}×</td></tr>`:''}
+      </tbody>
+    </table>
+  </div>`;
+
+  $('cekmece-sonuc').innerHTML=html;
+}
+
+/* ═══════════ DİKME ═══════════ */
+function dkTipDegis(){
+  const tip = $('dk-tip').value;
+  $('dk-gen-lbl').textContent = tip==='ic'
+    ? 'İç Net Genişlik (cm)'
+    : 'Dıştan Dışa Genişlik (cm)';
+  hesaplaDikme();
+}
+
+function hesaplaDikme(){
+  const tip   = $('dk-tip').value;
+  const gen   = parseFloat($('dk-gen').value) || 0;
+  const K     = parseFloat($('dk-mdf').value) || 1.8;
+  const B     = parseInt($('dk-bolum').value) || 1;
+  const yuk   = parseFloat($('dk-yuk').value) || 0;
+  const der   = parseFloat($('dk-der').value) || 0;
+
+  // İç net genişlik
+  const icNet = tip==='dis' ? gen - 2*K : gen;
+  const araPanel = B - 1;
+
+  // Bölüm iç genişliği
+  const bolumIc = (icNet - araPanel*K) / B;
+
+  // Dikme konumları (sol iç yüzden)
+  const konumlar = [];
+  for(let i=0;i<araPanel;i++){
+    const solIc = fmt((i+1)*bolumIc + i*K);
+    const sagIc = fmt((i+1)*bolumIc + i*K + K);
+    konumlar.push({idx:i+1, solIc, sagIc});
+  }
+
+  // Uyarılar
+  let html = '';
+  if(bolumIc < 0)
+    html+=`<div class="warn">⚠ Bölüm iç genişliği negatif! MDF sayısını veya bölme sayısını azalt.</div>`;
+  if(bolumIc < 20 && bolumIc > 0)
+    html+=`<div class="warn">⚠ Bölüm iç çok dar: ${fmt(bolumIc)}cm</div>`;
+
+  // Özet
+  html+=`<div class="card"><div class="ct">📐 Özet</div>
+    <div class="rg">
+      <div class="rb y"><div class="rv">${fmt(icNet)} cm</div><div class="rl">İç Net Genişlik</div></div>
+      <div class="rb y"><div class="rv">${fmt(bolumIc)} cm</div><div class="rl">Bölüm İç Genişlik</div></div>
+      <div class="rb b"><div class="rv">${araPanel}</div><div class="rl">Dikme Adedi</div></div>
+      <div class="rb b"><div class="rv">${B}</div><div class="rl">Bölme Sayısı</div></div>
+    </div>
+    <p class="mv">${fmt(icNet)} − (${araPanel}×${K}) = ${fmt(icNet-araPanel*K)} ÷ ${B} = <b style="color:var(--Y)">${fmt(bolumIc)} cm</b></p>
+  </div>`;
+
+  // Dikme konumları - toggle
+  html+=`<div class="card"><div class="ct">📍 Dikme Konumları</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px">
+      <button onclick="dkToggle('ic')" id="dk-btn-ic"
+        style="flex:1;padding:7px;border-radius:6px;border:1px solid var(--Y);background:var(--Y);color:#111;font-size:.75rem;font-weight:800;cursor:pointer">
+        İçten İçe ⭐
+      </button>
+      <button onclick="dkToggle('dis')" id="dk-btn-dis"
+        style="flex:1;padding:7px;border-radius:6px;border:1px solid #3a3a3a;background:#252525;color:#888;font-size:.75rem;font-weight:800;cursor:pointer">
+        Soldan Sağa (dıştan)
+      </button>
+    </div>
+
+    <!-- İÇTEN İÇE -->
+    <div id="dk-tablo-ic">
+      <div class="info" style="font-size:.72rem;padding:8px 10px;margin-bottom:10px">
+        📏 Mezurayı <b>sol yan panelin iç yüzüne</b> daya. Bu sayıyı gördüğünde dikmeyi koy.
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Dikme</th><th>Sol Yüzü</th><th>Sağ Yüzü</th></tr></thead>
+        <tbody>`;
+
+  konumlar.forEach(c=>html+=`<tr>
+    <td><b>${c.idx}. Dikme</b></td>
+    <td class="yv">${c.solIc} cm</td>
+    <td class="bv">${c.sagIc} cm</td>
+  </tr>`);
+
+  html+=`</tbody></table></div>
+
+    <!-- DIŞTAN DIŞA -->
+    <div id="dk-tablo-dis" style="display:none">
+      <div class="info" style="font-size:.72rem;padding:8px 10px;margin-bottom:10px">
+        📏 Sol dış köşeden ölçülür.
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Dikme</th><th>Sol Yüzü</th><th>Sağ Yüzü</th></tr></thead>
+        <tbody>`;
+
+  konumlar.forEach(c=>{
+    const solDis = fmt(parseFloat(c.solIc) + K);
+    const sagDis = fmt(parseFloat(c.sagIc) + K);
+    html+=`<tr>
+      <td><b>${c.idx}. Dikme</b></td>
+      <td class="yv">${solDis} cm</td>
+      <td class="bv">${sagDis} cm</td>
+    </tr>`;
+  });
+
+  html+=`</tbody></table></div></div>`;
+
+  // Dikme kesim listesi
+  if(araPanel > 0 && yuk > 0 && der > 0){
+    html+=`<div class="card"><div class="ct">✂️ Dikme Kesim Listesi</div>
+      <table class="tbl">
+        <thead><tr><th>Parça</th><th>En</th><th>Boy</th><th>Adet</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Dikme</b></td>
+            <td class="gv">${fmt(der)} cm</td>
+            <td class="gv">${fmt(yuk)} cm</td>
+            <td class="yv">${araPanel}×</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="mv" style="margin-top:8px">${K}cm MDF · ${araPanel} adet · toplam: ${fmt(araPanel*der*yuk)} cm²</p>
+    </div>`;
+  }
+
+  $('dikme-sonuc').innerHTML = html;
+}
+
+function dkToggle(mod){
+  $('dk-tablo-ic').style.display  = mod==='ic'  ? 'block':'none';
+  $('dk-tablo-dis').style.display = mod==='dis' ? 'block':'none';
+  $('dk-btn-ic').style.cssText  = `flex:1;padding:7px;border-radius:6px;border:1px solid ${mod==='ic'?'var(--Y)':'#3a3a3a'};background:${mod==='ic'?'var(--Y)':'#252525'};color:${mod==='ic'?'#111':'#888'};font-size:.75rem;font-weight:800;cursor:pointer`;
+  $('dk-btn-dis').style.cssText = `flex:1;padding:7px;border-radius:6px;border:1px solid ${mod==='dis'?'var(--Y)':'#3a3a3a'};background:${mod==='dis'?'var(--Y)':'#252525'};color:${mod==='dis'?'#111':'#888'};font-size:.75rem;font-weight:800;cursor:pointer`;
+}
+
+/* ═══════════ LEVHA PLAN ═══════════ */
+function renderLevhaPlan(){
+  const {tumParcalar,tpay}=S.sonuc;
+  const kutular=tumParcalar.map((p,id)=>({...p,id,lEn:p.en+tpay,lBoy:p.boy+tpay}));
+  kutular.sort((a,b)=>(b.lEn*b.lBoy)-(a.lEn*a.lBoy));
+  const lev=S.levhalar.map((l,li)=>({...l,li,yerlesimler:[],kalanAlan:l.en*l.boy,_strips:[{x:0,y:0,en:l.en,boy:l.boy}]}));
+  const sig=[];
+  function tryPlace(lv,ktu){
+    for(let si=0;si<lv._strips.length;si++){
+      const s=lv._strips[si];
+      for(const [eN,bY] of [[ktu.lEn,ktu.lBoy],[ktu.lBoy,ktu.lEn]]){
+        if(eN<=s.en&&bY<=s.boy){
+          const donmus=eN!==ktu.lEn;
+          lv.yerlesimler.push({...ktu,x:s.x,y:s.y,lEn:eN,lBoy:bY,
+            en:donmus?ktu.boy:ktu.en,boy:donmus?ktu.en:ktu.boy,donmus});
+          const ns=[];
+          if(s.en-eN>0.5) ns.push({x:s.x+eN,y:s.y,en:s.en-eN,boy:bY});
+          if(s.boy-bY>0.5) ns.push({x:s.x,y:s.y+bY,en:s.en,boy:s.boy-bY});
+          lv._strips.splice(si,1,...ns);
+          lv.kalanAlan-=ktu.lEn*ktu.lBoy;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  kutular.forEach(k=>{let ok=false;for(const l of lev){if(tryPlace(l,k)){ok=true;break;}}if(!ok)sig.push(k);});
+
+  // State'e kaydet ki kesim tablosunda gösterebilelim
+  S.sonuc._levhaYerlesimleri=lev;
+  // Kesim tablosunu güncelle (levha bilgisi artık hazır)
+  renderKesim();
+  let html='';
+  if(sig.length>0) html+=`<div class="warn">⚠ Sığmayan: ${sig.map(k=>k.isim).join(', ')}</div>`;
+  lev.forEach((l,li)=>{
+    if(!l.yerlesimler.length){html+=`<div class="card"><div class="ct">Levha ${li+1} — KULLANILMADI</div></div>`;return;}
+    const ver=Math.round((1-l.kalanAlan/(l.en*l.boy))*100);
+    html+=`<div class="card"><div class="ct">Levha ${li+1} — ${l.en}×${l.boy}cm <span class="tag tg">%${ver}</span></div>
+      <div class="cv-wrap"><canvas id="lcv-${li}"></canvas></div><p class="hint">← kaydır →</p>
+      <table class="tbl" style="margin-top:8px"><thead><tr><th>Parça</th><th>X</th><th>Y</th><th>En ✂️</th><th>Boy ✂️</th><th>Yön</th></tr></thead><tbody>
+      ${l.yerlesimler.map(y=>`<tr>
+        <td><b>${y.isim}</b></td><td class="mv">${fmt(y.x)}</td><td class="mv">${fmt(y.y)}</td>
+        <td class="${y.tur==='kapak'?'bv':y.tur==='cekmece'?'pv':'gv'}">${fmt(y.en)} cm</td>
+        <td class="${y.tur==='kapak'?'bv':y.tur==='cekmece'?'pv':'gv'}">${fmt(y.boy)} cm</td>
+        <td>${y.donmus?'<span class="tag tb">90°</span>':'<span class="tag tm">—</span>'}</td>
+      </tr>`).join('')}
+      </tbody></table></div>`;
+  });
+  $('levha-ic').innerHTML=html;
+  setTimeout(()=>lev.forEach((l,li)=>{if(l.yerlesimler.length)drawLevha(li,l,tpay);}),50);
+}
+
+function drawLevha(li,levha,tpay){
+  const cv=$(`lcv-${li}`); if(!cv) return;
+  const mW=Math.max(280,cv.parentElement.clientWidth-20);
+  const sc=Math.min((mW-20)/levha.en,320/levha.boy);
+  cv.width=levha.en*sc+20; cv.height=levha.boy*sc+20;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const ox=10,oy=10;
+  ctx.fillStyle='#1a1200'; ctx.fillRect(ox,oy,levha.en*sc,levha.boy*sc);
+  ctx.strokeStyle='#5a4a00'; ctx.lineWidth=1.5; ctx.strokeRect(ox,oy,levha.en*sc,levha.boy*sc);
+  const rk={kasa:{fill:'#1e3a00',stroke:'#6bf542',text:'#6bf542'},kapak:{fill:'#001a3a',stroke:'#42c8f5',text:'#42c8f5'},cekmece:{fill:'#2a001a',stroke:'#f542b4',text:'#f542b4'}};
+  levha.yerlesimler.forEach(y=>{
+    const r=rk[y.tur]||rk.kasa;
+    const px=ox+y.x*sc,py=oy+y.y*sc,pw=y.lEn*sc,ph=y.lBoy*sc;
+    ctx.fillStyle=r.fill; ctx.fillRect(px,py,pw,ph);
+    ctx.strokeStyle=r.stroke; ctx.lineWidth=1; ctx.strokeRect(px,py,pw,ph);
+    if(tpay>0){ctx.strokeStyle='#f00';ctx.lineWidth=.5;ctx.setLineDash([2,2]);ctx.strokeRect(px+tpay*sc/2,py+tpay*sc/2,pw-tpay*sc,ph-tpay*sc);ctx.setLineDash([]);}
+    if(pw>20&&ph>12){
+      ctx.fillStyle=r.text;ctx.font=`bold ${Math.min(10,pw/6)}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(y.isim.substring(0,10),px+pw/2,py+ph/2-5);
+      ctx.font=`${Math.min(8,pw/7)}px system-ui`;ctx.fillStyle='#888';
+      ctx.fillText(`${fmt(y.en)}×${fmt(y.boy)}`,px+pw/2,py+ph/2+7);
+    }
+  });
+  ctx.fillStyle='#f5c842';ctx.font='bold 9px system-ui';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText(`${levha.en}cm`,ox+levha.en*sc/2,oy-2);
+  ctx.save();ctx.translate(ox-3,oy+levha.boy*sc/2);ctx.rotate(-Math.PI/2);ctx.fillText(`${levha.boy}cm`,0,0);ctx.restore();
+}
+
+/* ═══════════ INIT ═══════════ */
+window.onload=()=>{
+  // PWA Service Worker
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js');
+  }
+  // Global menteşe seçeneklerini doldur
+  const gSel=$('global-mentese');
+  Object.entries(MENTESE).forEach(([k,v])=>{
+    const opt=document.createElement('option');
+    opt.value=k; opt.textContent=`${v.emoji} ${v.ad}`;
+    gSel.appendChild(opt);
+  });
+  globalMenteseGoster();
+
+  renderLevhalar();
+  S.bolumler=Array.from({length:4},defaultBolum);
+  renderBolumlar();
+};
+</script>
+</body>
+</html>
